@@ -44,10 +44,18 @@ class MutationDataset(Dataset):
 class MutationNet(nn.Module):
 	def __init__(self):
 		super().__init__()
-		self.fc1 = nn.Linear(5750, 25)
+		self.conv1 = nn.Conv1d(1, 1, kernel_size=5)
+		self.pool = nn.MaxPool1d(2, 2)
+		self.fc1 = nn.Linear(2873, 25)
 
 	def forward(self, x):
-		x = F.relu(self.fc1(x))
+		# print(x.shape)
+		x = F.relu(self.conv1(x))
+		# print(x.shape)
+		x = self.pool(x)
+		# print(x.shape)
+		x = self.fc1(x)
+		# print(x.shape)
 		return x
 
 
@@ -59,14 +67,15 @@ def train(feature_file, label_file, batch_size=4, epochs=2):
 
 	net = MutationNet()
 	criterion = nn.CrossEntropyLoss()
-	optimizer = optim.SGD(net.parameters(), lr=0.001, momentum=0.9)
+	optimizer = optim.Adam(net.parameters(), lr=0.001)
 
 	for epoch in range(epochs):
 		for i, (samples, labels) in enumerate(train_dataloader):
-			samples, labels = Variable(samples), Variable(torch.squeeze(labels))
+			samples, labels = Variable(torch.unsqueeze(samples, 1)), Variable(torch.squeeze(labels))
 			optimizer.zero_grad()
 
 			outputs = net(samples)
+			outputs = torch.squeeze(outputs)
 
 			loss = criterion(outputs, labels)
 			loss.backward()
@@ -78,9 +87,10 @@ def train(feature_file, label_file, batch_size=4, epochs=2):
 	total_correct = 0
 	total_predicted = 0
 	for i, (samples, labels) in enumerate(test_dataloader):
-		samples, labels = Variable(samples), Variable(torch.squeeze(labels))
+		samples, labels = Variable(torch.unsqueeze(samples, 1)), Variable(torch.squeeze(labels))
 
 		outputs = net(samples)
+		outputs = torch.squeeze(outputs)
 
 		loss = criterion(outputs, labels)
 		total_loss += loss.item()
