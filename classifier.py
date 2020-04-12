@@ -1,5 +1,6 @@
 import argparse
 
+import numpy as np
 import pandas as pd
 import torch
 from torch.utils.data import Dataset, DataLoader
@@ -44,22 +45,25 @@ class MutationDataset(Dataset):
 class MutationNet(nn.Module):
 	def __init__(self):
 		super().__init__()
-		self.conv1 = nn.Conv1d(1, 1, kernel_size=5)
+		self.cv01 = nn.Conv1d(1, 2, kernel_size=5)
+		self.cv02 = nn.Conv1d(2, 4, kernel_size=5)
+		self.cv03 = nn.Conv1d(4, 8, kernel_size=5)
 		self.pool = nn.MaxPool1d(2, 2)
-		self.fc1 = nn.Linear(2873, 25)
+		self.fc01 = nn.Linear(8 * 715, 25)
 
 	def forward(self, x):
-		# print(x.shape)
-		x = F.relu(self.conv1(x))
-		# print(x.shape)
+		x = F.relu(self.cv01(x))
 		x = self.pool(x)
-		# print(x.shape)
-		x = self.fc1(x)
-		# print(x.shape)
+		x = F.relu(self.cv02(x))
+		x = self.pool(x)
+		x = F.relu(self.cv03(x))
+		x = self.pool(x)
+		x = x.view(-1, 8 * 715)
+		x = self.fc01(x)
 		return x
 
 
-def train(feature_file, label_file, batch_size=4, epochs=2):
+def train(feature_file, label_file, batch_size=32, epochs=50):
 	dataset = MutationDataset(feature_file, label_file)
 	train_dataset, test_dataset = data.random_split(dataset, [int(0.8 * len(dataset)), len(dataset) - int(0.8 * len(dataset))])
 	train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
@@ -68,6 +72,8 @@ def train(feature_file, label_file, batch_size=4, epochs=2):
 	net = MutationNet()
 	criterion = nn.CrossEntropyLoss()
 	optimizer = optim.Adam(net.parameters(), lr=0.001)
+
+	net.train()
 
 	for epoch in range(epochs):
 		for i, (samples, labels) in enumerate(train_dataloader):
@@ -83,9 +89,19 @@ def train(feature_file, label_file, batch_size=4, epochs=2):
 
 			print('[%d, %4d] loss: %.3f' % (epoch + 1, i + 1, loss.item()))
 
+		net.eval()
+		validate(net, test_dataloader, criterion)
+		net.train()
+
+	net.eval()
+	validate(net, test_dataloader, criterion, compute_confusion=True)
+
+
+def validate(net, test_dataloader, criterion, compute_confusion=False):
 	total_loss = 0.0
 	total_correct = 0
 	total_predicted = 0
+	confusion_matrix = np.zeros((len(classifications), len(classifications)))
 	for i, (samples, labels) in enumerate(test_dataloader):
 		samples, labels = Variable(torch.unsqueeze(samples, 1)), Variable(torch.squeeze(labels))
 
@@ -99,8 +115,16 @@ def train(feature_file, label_file, batch_size=4, epochs=2):
 		total_predicted += predicted.size(0)
 		total_correct += (predicted == labels).sum().item()
 
+		if compute_confusion:
+			for j in range(predicted.size(0)):
+				confusion_matrix[labels[j]][predicted[j]] += 1
+
 	print('validation loss: %.3f' % (loss.item()))
 	print('validation accuracy: %.3f' % (total_correct / total_predicted))
+
+	if compute_confusion:
+		print('confusion_matrix:')
+		print(confusion_matrix)
 
 def main():
 	parser = argparse.ArgumentParser(description='Classifier for training and inference')
