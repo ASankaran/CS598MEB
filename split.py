@@ -4,7 +4,7 @@ import pandas as pd
 
 
 class Splitter(object):
-	def __init__(self, input_file, output_file, minimum_samples=35, train_proportion=0.8):
+	def __init__(self, input_file, output_file, minimum_samples=35, train_proportion=0.9):
 		self.input_file = input_file
 		self.output_file = output_file
 		self.minimum_samples = minimum_samples
