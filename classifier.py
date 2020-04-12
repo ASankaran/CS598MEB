@@ -64,8 +64,9 @@ class MutationNet(nn.Module):
 
 
 def train(feature_file, label_file, batch_size=32, epochs=50):
-	dataset = MutationDataset(feature_file, label_file)
-	train_dataset, test_dataset = data.random_split(dataset, [int(0.8 * len(dataset)), len(dataset) - int(0.8 * len(dataset))])
+	train_dataset = MutationDataset(feature_file + '.train', label_file + '.train')
+	test_dataset = MutationDataset(feature_file + '.test', label_file + '.test')
+
 	train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
 	test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
 
