@@ -41,6 +41,32 @@ class MutationDataset(Dataset):
 		return sample.float(), label
 
 
+class DenseMutationNet(nn.Module):
+	def __init__(self):
+		super().__init__()
+		self.fc01 = nn.Linear(5750, 512)
+		self.fc02 = nn.Linear(512, 512)
+		self.fc03 = nn.Linear(512, 512)
+		self.fc04 = nn.Linear(512, 512)
+		self.fc05 = nn.Linear(512, 512)
+		self.fc06 = nn.Linear(512, len(classifications))
+		self.drop = nn.Dropout(0.5)
+
+	def forward(self, x):
+		x = F.relu(self.fc01(x))
+		x = self.drop(x)
+		x = F.relu(self.fc02(x))
+		x = self.drop(x)
+		x = F.relu(self.fc03(x))
+		x = self.drop(x)
+		x = F.relu(self.fc04(x))
+		x = self.drop(x)
+		x = F.relu(self.fc05(x))
+		x = self.drop(x)
+		x = F.relu(self.fc06(x))
+		return x
+
+
 class ConvMutationNet(nn.Module):
 	def __init__(self):
 		super().__init__()
@@ -176,9 +202,13 @@ def main():
 	parser.add_argument('--output', help='The output file destination')
 	args = parser.parse_args()
 
-	losses, accuracies, confusion_matrix = train(ConvMutationNet(), args.input + '.features', args.input + '.labels')
-	generate_loss_accuracy_plot(f'{args.output}/cnn', losses, accuracies)
-	generate_confusion_plot(f'{args.output}/cnn', confusion_matrix)
+	losses, accuracies, confusion_matrix = train(DenseMutationNet(), args.input + '.features', args.input + '.labels')
+	generate_loss_accuracy_plot(f'{args.output}/dense', losses, accuracies)
+	generate_confusion_plot(f'{args.output}/dense', confusion_matrix)
+
+	# losses, accuracies, confusion_matrix = train(ConvMutationNet(), args.input + '.features', args.input + '.labels')
+	# generate_loss_accuracy_plot(f'{args.output}/cnn', losses, accuracies)
+	# generate_confusion_plot(f'{args.output}/cnn', confusion_matrix)
 
 
 if __name__ == '__main__':
