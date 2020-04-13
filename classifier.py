@@ -68,10 +68,6 @@ class ConvMutationNet(nn.Module):
 		return x
 
 
-def setup():
-	return ConvMutationNet()
-
-
 def generate_loss_accuracy_plot(output_file, losses, accuracies):
 	losses = np.array(losses)
 	accuracies = np.array(accuracies)
@@ -112,14 +108,13 @@ def generate_confusion_plot(output_file, confusion_matrix):
 	fig.savefig(f'{output_file}/confusion.svg')
 
 
-def train(feature_file, label_file, batch_size=32, epochs=50):
+def train(net, feature_file, label_file, batch_size=32, epochs=50):
 	train_dataset = MutationDataset(feature_file + '.train', label_file + '.train')
 	test_dataset = MutationDataset(feature_file + '.test', label_file + '.test')
 
 	train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
 	test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
 
-	net = setup()
 	criterion = nn.CrossEntropyLoss()
 	optimizer = optim.Adam(net.parameters(), lr=0.001)
 
@@ -181,10 +176,9 @@ def main():
 	parser.add_argument('--output', help='The output file destination')
 	args = parser.parse_args()
 
-	losses, accuracies, confusion_matrix = train(args.input + '.features', args.input + '.labels')
-
-	generate_loss_accuracy_plot(args.output, losses, accuracies)
-	generate_confusion_plot(args.output, confusion_matrix)
+	losses, accuracies, confusion_matrix = train(ConvMutationNet(), args.input + '.features', args.input + '.labels')
+	generate_loss_accuracy_plot(f'{args.output}/cnn', losses, accuracies)
+	generate_confusion_plot(f'{args.output}/cnn', confusion_matrix)
 
 
 if __name__ == '__main__':
