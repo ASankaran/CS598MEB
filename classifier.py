@@ -42,7 +42,7 @@ class MutationDataset(Dataset):
 		return sample.float(), label
 
 
-class MutationNet(nn.Module):
+class ConvMutationNet(nn.Module):
 	def __init__(self):
 		super().__init__()
 		self.cv01 = nn.Conv1d(1, 2, kernel_size=5)
@@ -69,6 +69,9 @@ class MutationNet(nn.Module):
 		return x
 
 
+def setup():
+	return ConvMutationNet()
+
 def train(feature_file, label_file, batch_size=32, epochs=50):
 	train_dataset = MutationDataset(feature_file + '.train', label_file + '.train')
 	test_dataset = MutationDataset(feature_file + '.test', label_file + '.test')
@@ -76,13 +79,17 @@ def train(feature_file, label_file, batch_size=32, epochs=50):
 	train_dataloader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
 	test_dataloader = DataLoader(test_dataset, batch_size=batch_size, shuffle=True, num_workers=4)
 
-	net = MutationNet()
+	net = setup()
 	criterion = nn.CrossEntropyLoss()
 	optimizer = optim.Adam(net.parameters(), lr=0.001)
 
 	net.train()
 
+	losses = []
+	accuracies = []
+
 	for epoch in range(epochs):
+		total_loss = 0.0
 		for i, (samples, labels) in enumerate(train_dataloader):
 			samples, labels = Variable(torch.unsqueeze(samples, 1)), Variable(torch.squeeze(labels))
 			optimizer.zero_grad()
@@ -94,18 +101,25 @@ def train(feature_file, label_file, batch_size=32, epochs=50):
 			loss.backward()
 			optimizer.step()
 
-			print('[%d, %4d] loss: %.3f' % (epoch + 1, i + 1, loss.item()))
+			total_loss += loss.item()
+		losses.append(total_loss)
+		print('[%2d] loss: %.3f' % (epoch + 1, total_loss))
 
 		net.eval()
-		validate(net, test_dataloader, criterion)
+		accuracy = validate(net, test_dataloader)
+		accuracies.append(accuracy)
 		net.train()
 
+	print('Losses:')
+	print(losses)
+	print('Accuracies:')
+	print(accuracies)
+
 	net.eval()
-	validate(net, test_dataloader, criterion, compute_confusion=True)
+	validate(net, test_dataloader, compute_confusion=True)
 
 
-def validate(net, test_dataloader, criterion, compute_confusion=False):
-	total_loss = 0.0
+def validate(net, test_dataloader, compute_confusion=False):
 	total_correct = 0
 	total_predicted = 0
 	confusion_matrix = np.zeros((len(classifications), len(classifications)))
@@ -115,9 +129,6 @@ def validate(net, test_dataloader, criterion, compute_confusion=False):
 		outputs = net(samples)
 		outputs = torch.squeeze(outputs)
 
-		loss = criterion(outputs, labels)
-		total_loss += loss.item()
-
 		_, predicted = torch.max(outputs, 1)
 		total_predicted += predicted.size(0)
 		total_correct += (predicted == labels).sum().item()
@@ -126,12 +137,11 @@ def validate(net, test_dataloader, criterion, compute_confusion=False):
 			for j in range(predicted.size(0)):
 				confusion_matrix[labels[j]][predicted[j]] += 1
 
-	print('validation loss: %.3f' % (loss.item()))
-	print('validation accuracy: %.3f' % (total_correct / total_predicted))
-
 	if compute_confusion:
 		print('confusion_matrix:')
 		print(confusion_matrix)
+
+	return total_correct / total_predicted
 
 def main():
 	parser = argparse.ArgumentParser(description='Classifier for training and inference')
