@@ -9,6 +9,7 @@ import torch.nn as nn
 from torch.autograd import Variable
 import torch.nn.functional as F
 import torch.optim as optim
+import matplotlib.pyplot as plt
 
 
 classifications = [
@@ -72,6 +73,25 @@ class ConvMutationNet(nn.Module):
 def setup():
 	return ConvMutationNet()
 
+
+def generate_loss_accuracy_plot(output_file, losses, accuracies):
+	losses = np.array(losses)
+	accuracies = np.array(accuracies)
+
+	fig = plt.figure()
+	ax = fig.gca()
+
+	ax.set_xlabel('Epochs')
+	ax.set_ylabel('Loss', color='tab:red')
+	ax.plot(losses, color='tab:red')
+	ax = ax.twinx()
+	ax.set_ylabel('Accuracy', color='tab:blue')
+	ax.plot(accuracies, color='tab:blue')
+
+	fig.tight_layout()
+	fig.savefig(f'{output_file}/loss_accurracy.svg')
+
+
 def train(feature_file, label_file, batch_size=32, epochs=50):
 	train_dataset = MutationDataset(feature_file + '.train', label_file + '.train')
 	test_dataset = MutationDataset(feature_file + '.test', label_file + '.test')
@@ -110,13 +130,10 @@ def train(feature_file, label_file, batch_size=32, epochs=50):
 		accuracies.append(accuracy)
 		net.train()
 
-	print('Losses:')
-	print(losses)
-	print('Accuracies:')
-	print(accuracies)
-
 	net.eval()
 	validate(net, test_dataloader, compute_confusion=True)
+
+	return losses, accuracies
 
 
 def validate(net, test_dataloader, compute_confusion=False):
@@ -146,9 +163,12 @@ def validate(net, test_dataloader, compute_confusion=False):
 def main():
 	parser = argparse.ArgumentParser(description='Classifier for training and inference')
 	parser.add_argument('--input', help='The input file prefix for the preprocessed data')
+	parser.add_argument('--output', help='The output file destination')
 	args = parser.parse_args()
 
-	train(args.input + '.features', args.input + '.labels')
+	losses, accuracies = train(args.input + '.features', args.input + '.labels')
+
+	generate_loss_accuracy_plot(args.output, losses, accuracies)
 
 
 if __name__ == '__main__':
