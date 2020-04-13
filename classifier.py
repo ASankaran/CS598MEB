@@ -50,11 +50,11 @@ class DenseMutationNet(nn.Module):
 		self.drop = nn.Dropout(0.5)
 
 	def forward(self, x):
-		x = F.relu(self.fc01(x))
+		x = self.fc01(x)
 		x = self.drop(x)
-		x = F.relu(self.fc02(x))
+		x = self.fc02(x)
 		x = self.drop(x)
-		x = F.relu(self.fc03(x))
+		x = self.fc03(x)
 		return x
 
 
