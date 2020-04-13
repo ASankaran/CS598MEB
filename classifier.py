@@ -10,6 +10,7 @@ from torch.autograd import Variable
 import torch.nn.functional as F
 import torch.optim as optim
 import matplotlib.pyplot as plt
+import seaborn as sn
 
 
 classifications = [
@@ -92,6 +93,10 @@ def generate_loss_accuracy_plot(output_file, losses, accuracies):
 	fig.savefig(f'{output_file}/loss_accurracy.svg')
 
 
+def generate_confusion_plot(output_file, confusion_matrix):
+	pass
+
+
 def train(feature_file, label_file, batch_size=32, epochs=50):
 	train_dataset = MutationDataset(feature_file + '.train', label_file + '.train')
 	test_dataset = MutationDataset(feature_file + '.test', label_file + '.test')
@@ -126,17 +131,17 @@ def train(feature_file, label_file, batch_size=32, epochs=50):
 		print('[%2d] loss: %.3f' % (epoch + 1, total_loss))
 
 		net.eval()
-		accuracy = validate(net, test_dataloader)
+		accuracy, _ = validate(net, test_dataloader)
 		accuracies.append(accuracy)
 		net.train()
 
 	net.eval()
-	validate(net, test_dataloader, compute_confusion=True)
+	_, confusion_matrix = validate(net, test_dataloader)
 
-	return losses, accuracies
+	return losses, accuracies, confusion_matrix
 
 
-def validate(net, test_dataloader, compute_confusion=False):
+def validate(net, test_dataloader):
 	total_correct = 0
 	total_predicted = 0
 	confusion_matrix = np.zeros((len(classifications), len(classifications)))
@@ -150,15 +155,10 @@ def validate(net, test_dataloader, compute_confusion=False):
 		total_predicted += predicted.size(0)
 		total_correct += (predicted == labels).sum().item()
 
-		if compute_confusion:
-			for j in range(predicted.size(0)):
-				confusion_matrix[labels[j]][predicted[j]] += 1
+		for j in range(predicted.size(0)):
+			confusion_matrix[labels[j]][predicted[j]] += 1
 
-	if compute_confusion:
-		print('confusion_matrix:')
-		print(confusion_matrix)
-
-	return total_correct / total_predicted
+	return total_correct / total_predicted, confusion_matrix
 
 def main():
 	parser = argparse.ArgumentParser(description='Classifier for training and inference')
@@ -166,9 +166,10 @@ def main():
 	parser.add_argument('--output', help='The output file destination')
 	args = parser.parse_args()
 
-	losses, accuracies = train(args.input + '.features', args.input + '.labels')
+	losses, accuracies, confusion_matrix = train(args.input + '.features', args.input + '.labels')
 
 	generate_loss_accuracy_plot(args.output, losses, accuracies)
+	generate_confusion_plot(args.output, confusion_matrix)
 
 
 if __name__ == '__main__':
