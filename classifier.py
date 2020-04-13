@@ -17,10 +17,7 @@ classifications = [
 	'Ovary-AdenoCA', 'CNS-PiloAstro', 'Liver-HCC', 'Panc-Endocrine',
 	'Kidney-RCC', 'Prost-AdenoCA', 'Lymph-BNHL', 'Panc-AdenoCA',
 	'Eso-AdenoCa', 'CNS-Medullo', 'Lymph-CLL', 'Skin-Melanoma',
-	'Stomach-AdenoCA', 'Breast-AdenoCa', 'Head-SCC', 'Lymph-NOS',
-	'Myeloid-AML', 'Biliary-AdenoCA', 'Bone-Osteosarc', 'Breast-DCIS',
-	'Breast-LobularCa', 'Myeloid-MPN', 'Myeloid-MDS', 'Bone-Cart',
-	'Bone-Epith'
+	'Stomach-AdenoCA', 'Breast-AdenoCa', 'Bone-Osteosarc'
 ]
 
 
@@ -54,7 +51,7 @@ class ConvMutationNet(nn.Module):
 		self.cv05 = nn.Conv1d(4, 8, kernel_size=5)
 		self.cv06 = nn.Conv1d(8, 8, kernel_size=5)
 		self.pool = nn.MaxPool1d(2, 2)
-		self.fc01 = nn.Linear(8 * 711, 25)
+		self.fc01 = nn.Linear(8 * 711, len(classifications))
 
 	def forward(self, x):
 		x = F.relu(self.cv01(x))
@@ -78,23 +75,41 @@ def setup():
 def generate_loss_accuracy_plot(output_file, losses, accuracies):
 	losses = np.array(losses)
 	accuracies = np.array(accuracies)
+	epochs = np.array(list(range(0, len(losses))))
+
+	data = pd.DataFrame({
+		'Loss': losses,
+		'Accuracy': accuracies,
+		'Epoch': epochs
+	})
 
 	fig = plt.figure()
 	ax = fig.gca()
 
-	ax.set_xlabel('Epochs')
-	ax.set_ylabel('Loss', color='tab:red')
-	ax.plot(losses, color='tab:red')
+	sn.lineplot('Epoch', 'Loss', data=data, color='tab:red', ax=ax)
 	ax = ax.twinx()
-	ax.set_ylabel('Accuracy', color='tab:blue')
-	ax.plot(accuracies, color='tab:blue')
+	sn.lineplot('Epoch', 'Accuracy', data=data, color='tab:blue', ax=ax)
 
 	fig.tight_layout()
 	fig.savefig(f'{output_file}/loss_accurracy.svg')
 
 
 def generate_confusion_plot(output_file, confusion_matrix):
-	pass
+	confusion_matrix = pd.DataFrame(
+		confusion_matrix.astype('float') / confusion_matrix.sum(axis=1)[:, np.newaxis],
+		columns=np.array(classifications),
+		index=np.array(classifications)
+	)
+	confusion_matrix.index.name = 'Actual'
+	confusion_matrix.columns.name = 'Predicted'
+
+	fig = plt.figure(figsize=(8, 8))
+	ax = fig.gca()
+
+	sn.heatmap(confusion_matrix, ax=ax, cmap='Blues', annot=True, annot_kws={'size': 8})
+
+	fig.tight_layout()
+	fig.savefig(f'{output_file}/confusion.svg')
 
 
 def train(feature_file, label_file, batch_size=32, epochs=50):
