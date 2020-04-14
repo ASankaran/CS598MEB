@@ -1,6 +1,8 @@
 import torch.nn as nn
 import torch.nn.functional as F
 
+from common import classifications
+
 
 class ConvMutationNet(nn.Module):
 	def __init__(self):

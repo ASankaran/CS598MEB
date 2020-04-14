@@ -1,5 +1,7 @@
 import torch.nn as nn
 
+from common import classifications
+
 
 class DenseMutationNet(nn.Module):
 	def __init__(self):

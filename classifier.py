@@ -11,17 +11,11 @@ import torch.optim as optim
 import matplotlib.pyplot as plt
 import seaborn as sn
 
+from common import classifications
+
 from dense import DenseMutationNet
 from cnn import ConvMutationNet
 from rnn import RecMutationNet
-
-
-classifications = [
-	'Ovary-AdenoCA', 'CNS-PiloAstro', 'Liver-HCC', 'Panc-Endocrine',
-	'Kidney-RCC', 'Prost-AdenoCA', 'Lymph-BNHL', 'Panc-AdenoCA',
-	'Eso-AdenoCa', 'CNS-Medullo', 'Lymph-CLL', 'Skin-Melanoma',
-	'Stomach-AdenoCA', 'Breast-AdenoCa', 'Bone-Osteosarc'
-]
 
 
 class MutationDataset(Dataset):
@@ -157,9 +151,9 @@ def main():
 	# generate_loss_accuracy_plot(f'{args.output}/dense', losses, accuracies)
 	# generate_confusion_plot(f'{args.output}/dense', confusion_matrix)
 
-	# losses, accuracies, confusion_matrix = train(ConvMutationNet(), args.input + '.features', args.input + '.labels')
-	# generate_loss_accuracy_plot(f'{args.output}/cnn', losses, accuracies)
-	# generate_confusion_plot(f'{args.output}/cnn', confusion_matrix)
+	losses, accuracies, confusion_matrix = train(ConvMutationNet(), args.input + '.features', args.input + '.labels')
+	generate_loss_accuracy_plot(f'{args.output}/cnn', losses, accuracies)
+	generate_confusion_plot(f'{args.output}/cnn', confusion_matrix)
 
 	# losses, accuracies, confusion_matrix = train(RecMutationNet(), args.input + '.features', args.input + '.labels')
 	# generate_loss_accuracy_plot(f'{args.output}/rnn', losses, accuracies)

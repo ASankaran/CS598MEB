@@ -1,5 +1,7 @@
 import torch.nn as nn
 
+from common import classifications
+
 
 class RecMutationNet(nn.Module):
 	def __init__(self):
