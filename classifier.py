@@ -161,8 +161,8 @@ def main():
 	# generate_confusion_plot(f'{args.output}/rnn', confusion_matrix)
 
 	losses, accuracies, confusion_matrix = train(ResMutationNet(), args.input + '.features', args.input + '.labels')
-	generate_loss_accuracy_plot(f'{args.output}/cnn', losses, accuracies)
-	generate_confusion_plot(f'{args.output}/cnn', confusion_matrix)
+	generate_loss_accuracy_plot(f'{args.output}/res', losses, accuracies)
+	generate_confusion_plot(f'{args.output}/res', confusion_matrix)
 
 
 if __name__ == '__main__':
