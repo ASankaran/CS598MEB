@@ -176,7 +176,8 @@ def train(net, feature_file, label_file, batch_size=32, epochs=50):
 		net.train()
 
 	net.eval()
-	_, confusion_matrix = validate(net, test_dataloader)
+	accuracy, confusion_matrix = validate(net, test_dataloader)
+	print(f'Accuracy: {accuracy}')
 
 	return losses, accuracies, confusion_matrix
 
