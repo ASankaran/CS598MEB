@@ -7,10 +7,13 @@ from torch.utils.data import Dataset, DataLoader
 import torch.utils.data as data
 import torch.nn as nn
 from torch.autograd import Variable
-import torch.nn.functional as F
 import torch.optim as optim
 import matplotlib.pyplot as plt
 import seaborn as sn
+
+from dense import DenseMutationNet
+from cnn import ConvMutationNet
+from rnn import RecMutationNet
 
 
 classifications = [
@@ -39,63 +42,6 @@ class MutationDataset(Dataset):
 		label = torch.tensor([classifications.index(label) for label in list(self.labels.iloc[index].values)])
 
 		return sample.float(), label
-
-
-class DenseMutationNet(nn.Module):
-	def __init__(self):
-		super().__init__()
-		self.fc01 = nn.Linear(5750, 512)
-		self.fc02 = nn.Linear(512, 512)
-		self.fc03 = nn.Linear(512, len(classifications))
-		self.drop = nn.Dropout(0.5)
-
-	def forward(self, x):
-		x = self.fc01(x)
-		x = self.drop(x)
-		x = self.fc02(x)
-		x = self.drop(x)
-		x = self.fc03(x)
-		return x
-
-
-class ConvMutationNet(nn.Module):
-	def __init__(self):
-		super().__init__()
-		self.cv01 = nn.Conv1d(1, 2, kernel_size=5)
-		self.cv02 = nn.Conv1d(2, 2, kernel_size=5)
-		self.cv03 = nn.Conv1d(2, 4, kernel_size=5)
-		self.cv04 = nn.Conv1d(4, 4, kernel_size=5)
-		self.cv05 = nn.Conv1d(4, 8, kernel_size=5)
-		self.cv06 = nn.Conv1d(8, 8, kernel_size=5)
-		self.pool = nn.MaxPool1d(2, 2)
-		self.fc01 = nn.Linear(8 * 711, len(classifications))
-
-	def forward(self, x):
-		x = F.relu(self.cv01(x))
-		x = F.relu(self.cv02(x))
-		x = self.pool(x)
-		x = F.relu(self.cv03(x))
-		x = F.relu(self.cv04(x))
-		x = self.pool(x)
-		x = F.relu(self.cv05(x))
-		x = F.relu(self.cv06(x))
-		x = self.pool(x)
-		x = x.view(-1, 8 * 711)
-		x = self.fc01(x)
-		return x
-
-
-class RecMutationNet(nn.Module):
-	def __init__(self):
-		super().__init__()
-		self.rnn = nn.RNN(5750, 512, 3, batch_first=True)
-		self.fc = nn.Linear(512, len(classifications))
-
-	def forward(self, x):
-		x, _ = self.rnn(x, torch.zeros(3, x.size(0), 512))
-		x = x.contiguous().view(-1, 512)
-		x = self.fc(x)
-		return x
 
 
 def generate_loss_accuracy_plot(output_file, losses, accuracies):
@@ -211,9 +157,9 @@ def main():
 	# generate_loss_accuracy_plot(f'{args.output}/dense', losses, accuracies)
 	# generate_confusion_plot(f'{args.output}/dense', confusion_matrix)
 
-	losses, accuracies, confusion_matrix = train(ConvMutationNet(), args.input + '.features', args.input + '.labels')
-	generate_loss_accuracy_plot(f'{args.output}/cnn', losses, accuracies)
-	generate_confusion_plot(f'{args.output}/cnn', confusion_matrix)
+	# losses, accuracies, confusion_matrix = train(ConvMutationNet(), args.input + '.features', args.input + '.labels')
+	# generate_loss_accuracy_plot(f'{args.output}/cnn', losses, accuracies)
+	# generate_confusion_plot(f'{args.output}/cnn', confusion_matrix)
 
 	# losses, accuracies, confusion_matrix = train(RecMutationNet(), args.input + '.features', args.input + '.labels')
 	# generate_loss_accuracy_plot(f'{args.output}/rnn', losses, accuracies)
