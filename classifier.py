@@ -33,7 +33,7 @@ class MutationDataset(Dataset):
 		if torch.is_tensor(index):
 			index = index.tolist()
 
-		sample = torch.tensor(self.samples.iloc[index].values).reshape(23, 250)
+		sample = torch.tensor(self.samples.iloc[index].values)
 		label = torch.tensor([classifications.index(label) for label in list(self.labels.iloc[index].values)])
 
 		return sample.float(), label
@@ -97,7 +97,7 @@ def train(net, feature_file, label_file, batch_size=32, epochs=50):
 	for epoch in range(epochs):
 		total_loss = 0.0
 		for i, (samples, labels) in enumerate(train_dataloader):
-			samples, labels = Variable(samples), Variable(torch.squeeze(labels))
+			samples, labels = Variable(torch.unsqueeze(samples, 1)), Variable(torch.squeeze(labels))
 			optimizer.zero_grad()
 
 			outputs = net(samples)
@@ -128,7 +128,7 @@ def validate(net, test_dataloader):
 	total_predicted = 0
 	confusion_matrix = np.zeros((len(classifications), len(classifications)))
 	for i, (samples, labels) in enumerate(test_dataloader):
-		samples, labels = Variable(samples), Variable(torch.squeeze(labels))
+		samples, labels = Variable(torch.unsqueeze(samples, 1)), Variable(torch.squeeze(labels))
 
 		outputs = net(samples)
 		outputs = torch.squeeze(outputs)
