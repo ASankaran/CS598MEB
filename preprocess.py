@@ -3,7 +3,7 @@ import argparse
 import pandas as pd
 
 class Preprocessor(object):
-	def __init__(self, input_file, output_file, bucket_size=1000000, bucket_count=250, chromosomes=23, batch_size=10000):
+	def __init__(self, input_file, output_file, bucket_size=1000000, bucket_count=250, chromosomes=23, batch_size=100000):
 		self.input_file = input_file
 		self.output_file = output_file
 		self.bucket_size = bucket_size
@@ -23,6 +23,8 @@ class Preprocessor(object):
 
 	def _handle_chunk(self, chunk):
 		for i, row in chunk.iterrows():
+			if row['Variant_Type'] != 'SNP' or row['Start_position'] != row['End_position']:
+				continue
 			self._maybe_init_sample(row['Donor_ID'], row['Project_Code'])
 			self._update_sample(row['Donor_ID'], row['Project_Code'], row['Chromosome'], row['Start_position'])
 

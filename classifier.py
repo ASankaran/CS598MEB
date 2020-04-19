@@ -152,17 +152,17 @@ def main():
 	# generate_loss_accuracy_plot(f'{args.output}/dense', losses, accuracies)
 	# generate_confusion_plot(f'{args.output}/dense', confusion_matrix)
 
-	# losses, accuracies, confusion_matrix = train(ConvMutationNet(), args.input + '.features', args.input + '.labels')
-	# generate_loss_accuracy_plot(f'{args.output}/cnn', losses, accuracies)
-	# generate_confusion_plot(f'{args.output}/cnn', confusion_matrix)
+	losses, accuracies, confusion_matrix = train(ConvMutationNet(), args.input + '.features', args.input + '.labels')
+	generate_loss_accuracy_plot(f'{args.output}/cnn', losses, accuracies)
+	generate_confusion_plot(f'{args.output}/cnn', confusion_matrix)
 
 	# losses, accuracies, confusion_matrix = train(RecMutationNet(), args.input + '.features', args.input + '.labels')
 	# generate_loss_accuracy_plot(f'{args.output}/rnn', losses, accuracies)
 	# generate_confusion_plot(f'{args.output}/rnn', confusion_matrix)
 
-	losses, accuracies, confusion_matrix = train(ResMutationNet(), args.input + '.features', args.input + '.labels')
-	generate_loss_accuracy_plot(f'{args.output}/res', losses, accuracies)
-	generate_confusion_plot(f'{args.output}/res', confusion_matrix)
+	# losses, accuracies, confusion_matrix = train(ResMutationNet(), args.input + '.features', args.input + '.labels')
+	# generate_loss_accuracy_plot(f'{args.output}/res', losses, accuracies)
+	# generate_confusion_plot(f'{args.output}/res', confusion_matrix)
 
 
 if __name__ == '__main__':
