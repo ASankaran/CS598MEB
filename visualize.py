@@ -39,9 +39,6 @@ class Vizualizer(object):
 
 		greyscaled = {label: np.sqrt(np.sqrt(averaged[label] / overall_max)) * 255.0 for label in averaged}
 
-		# for label in greyscaled:
-		# 	image = Image.fromarray(greyscaled[label].astype(np.uint8))
-		# 	image.save(f'{self.output_file}/{label}.png', 'png')
 		self.plot_images('Feature Maps', greyscaled)
 
 		greyscaled_unique = {}
@@ -57,9 +54,6 @@ class Vizualizer(object):
 
 		greyscaled_unique = {label: np.sqrt(np.sqrt(greyscaled_unique[label] / 255.0)) * 255.0 for label in greyscaled_unique}
 
-		# for label in greyscaled_unique:
-		# 	image = Image.fromarray(greyscaled_unique[label].astype(np.uint8))
-		# 	image.save(f'{self.output_file}/{label}_unique.png', 'png')
 		self.plot_images('Feature Map Uniqueness', greyscaled_unique)
 
 	def plot_images(self, title, maps):
@@ -77,7 +71,6 @@ class Vizualizer(object):
 			sub_ax.axis('off')
 			sub_ax.imshow(maps[label])
 
-		#fig.tight_layout()
 		fig.savefig(f'{self.output_file}/{title}.svg')
 
 
