@@ -59,7 +59,7 @@ class Vizualizer(object):
 	def plot_images(self, title, maps):
 		fig = plt.figure(figsize=(8, 8))
 		ax = fig.gca()
-		ax.set_title(title)
+		ax.set_title(title, pad=25.0)
 		ax.axis('off')
 
 		cols = 5
@@ -69,8 +69,9 @@ class Vizualizer(object):
 			sub_ax = fig.add_subplot(rows, cols, i + 1)
 			sub_ax.set_title(label, fontsize=10)
 			sub_ax.axis('off')
-			sub_ax.imshow(maps[label])
+			sub_ax.imshow(maps[label], extent=(-0.5, 0.5, 0.5, -0.5))
 
+		fig.tight_layout()
 		fig.savefig(f'{self.output_file}/{title}.svg')
 
 
