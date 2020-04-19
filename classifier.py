@@ -148,21 +148,29 @@ def main():
 	parser.add_argument('--output', help='The output file destination')
 	args = parser.parse_args()
 
-	# losses, accuracies, confusion_matrix = train(DenseMutationNet(), args.input + '.features', args.input + '.labels')
+	# net = DenseMutationNet()
+	# losses, accuracies, confusion_matrix = train(net, args.input + '.features', args.input + '.labels')
 	# generate_loss_accuracy_plot(f'{args.output}/dense', losses, accuracies)
 	# generate_confusion_plot(f'{args.output}/dense', confusion_matrix)
+	# torch.save(net.state_dict(), f'{args.output}/dense/model.pt')
 
-	losses, accuracies, confusion_matrix = train(ConvMutationNet(), args.input + '.features', args.input + '.labels')
+	net = ConvMutationNet()
+	losses, accuracies, confusion_matrix = train(net, args.input + '.features', args.input + '.labels')
 	generate_loss_accuracy_plot(f'{args.output}/cnn', losses, accuracies)
 	generate_confusion_plot(f'{args.output}/cnn', confusion_matrix)
+	torch.save(net.state_dict(), f'{args.output}/cnn/model.pt')
 
-	# losses, accuracies, confusion_matrix = train(RecMutationNet(), args.input + '.features', args.input + '.labels')
+	# net = RecMutationNet()
+	# losses, accuracies, confusion_matrix = train(net, args.input + '.features', args.input + '.labels')
 	# generate_loss_accuracy_plot(f'{args.output}/rnn', losses, accuracies)
 	# generate_confusion_plot(f'{args.output}/rnn', confusion_matrix)
+	# torch.save(net.state_dict(), f'{args.output}/rnn/model.pt')
 
-	# losses, accuracies, confusion_matrix = train(ResMutationNet(), args.input + '.features', args.input + '.labels')
+	# net = ResMutationNet()
+	# losses, accuracies, confusion_matrix = train(net, args.input + '.features', args.input + '.labels')
 	# generate_loss_accuracy_plot(f'{args.output}/res', losses, accuracies)
 	# generate_confusion_plot(f'{args.output}/res', confusion_matrix)
+	# torch.save(net.state_dict(), f'{args.output}/res/model.pt')
 
 
 if __name__ == '__main__':
