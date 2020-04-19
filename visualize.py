@@ -4,6 +4,7 @@ import argparse
 import numpy as np
 import pandas as pd
 from PIL import Image
+import matplotlib.pyplot as plt
 
 
 class Vizualizer(object):
@@ -38,9 +39,10 @@ class Vizualizer(object):
 
 		greyscaled = {label: np.sqrt(np.sqrt(averaged[label] / overall_max)) * 255.0 for label in averaged}
 
-		for label in greyscaled:
-			image = Image.fromarray(greyscaled[label].astype(np.uint8))
-			image.save(f'{self.output_file}/{label}.png', 'png')
+		# for label in greyscaled:
+		# 	image = Image.fromarray(greyscaled[label].astype(np.uint8))
+		# 	image.save(f'{self.output_file}/{label}.png', 'png')
+		self.plot_images('Feature Maps', greyscaled)
 
 		greyscaled_unique = {}
 
@@ -55,9 +57,28 @@ class Vizualizer(object):
 
 		greyscaled_unique = {label: np.sqrt(np.sqrt(greyscaled_unique[label] / 255.0)) * 255.0 for label in greyscaled_unique}
 
-		for label in greyscaled_unique:
-			image = Image.fromarray(greyscaled_unique[label].astype(np.uint8))
-			image.save(f'{self.output_file}/{label}_unique.png', 'png')
+		# for label in greyscaled_unique:
+		# 	image = Image.fromarray(greyscaled_unique[label].astype(np.uint8))
+		# 	image.save(f'{self.output_file}/{label}_unique.png', 'png')
+		self.plot_images('Feature Map Uniqueness', greyscaled_unique)
+
+	def plot_images(self, title, maps):
+		fig = plt.figure(figsize=(8, 8))
+		ax = fig.gca()
+		ax.set_title(title)
+		ax.axis('off')
+
+		cols = 5
+		rows = len(maps) / cols
+
+		for i, label in enumerate(maps):
+			sub_ax = fig.add_subplot(rows, cols, i + 1)
+			sub_ax.set_title(label, fontsize=10)
+			sub_ax.axis('off')
+			sub_ax.imshow(maps[label])
+
+		#fig.tight_layout()
+		fig.savefig(f'{self.output_file}/{title}.svg')
 
 
 def main():
