@@ -17,6 +17,7 @@ class ConvMutationNet(nn.Module):
 		self.fc01 = nn.Linear(8 * 711, len(classifications))
 
 	def forward(self, x):
+		x = (x > 1).float()
 		x = F.relu(self.cv01(x))
 		x = F.relu(self.cv02(x))
 		x = self.pool(x)
